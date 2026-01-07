@@ -1,6 +1,3 @@
-# test-nonton-drama
-Experimental project for testing third-party API consumption. For personal and educational use only.
-
 ## Disclaimer
 
 This project does not host, store, or distribute any media content.
