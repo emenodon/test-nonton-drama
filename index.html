@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nonton Drama</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --surface: #334155;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Search */
+        .search-container {
+            padding: 16px;
+            background: var(--bg);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 8px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1rem;
+            padding: 8px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-btn:active {
+            background: var(--primary-dark);
+            transform: scale(0.95);
+        }
+
+        /* Categories */
+        .categories {
+            padding: 0 16px 16px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-btn {
+            background: var(--card-bg);
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .category-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Content */
+        .content {
+            padding: 0 16px 80px;
+            min-height: 60vh;
+        }
+
+        /* Grid View */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            padding-bottom: 16px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            aspect-ratio: 2/3;
+            position: relative;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 70%;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-info {
+            padding: 12px;
+            height: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .card-title em {
+          color: #facc15;
+          font-style: normal;
+        }
+
+        .card-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Episode List */
+        .episode-list {
+            padding: 0;
+        }
+
+        .episode-item {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .episode-item:active {
+            background: var(--surface);
+        }
+
+        .episode-title {
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .episode-play {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        /* Video Player */
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 1000;
+            display: none;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .video-controls {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .video-controls button {
+            pointer-events: auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            font-size: 1.2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--surface);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            display: flex;
+            padding: 12px 16px;
+            gap: 16px;
+            border-top: 1px solid var(--surface);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .nav-btn i {
+            font-size: 1.2rem;
+        }
+
+        .global-watermark {
+            position: fixed;
+            bottom: 80px;
+            right: 12px;
+            z-index: 50;
+
+            font-size: 0.65rem;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .detail-title {
+            font-size: clamp(1.1rem, 4.5vw, 1.4rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .badges {
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          z-index: 5;
+        }
+
+        .badge {
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 4px 8px;
+          border-radius: 999px;
+          color: white;
+          backdrop-filter: blur(6px);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        .badge.hot { background: #ef4444; }
+        .badge.new { background: #22c55e; }
+        .badge.exclusive { background: #facc15; color: #1e293b; }
+        .badge.dub { background: #3b82f6; }
+        .badge.original { background: #8b5cf6; }
+        .badge.saved { background: #64748b; }
+
+        .app-title {
+          font-size: 1.6rem;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .app-subtitle {
+          text-align: center;
+          font-size: 0.75rem;
+          opacity: 0.85;
+          margin-top: 2px;
+          letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
+            }
+            
+            .card-title {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+      <h1 class="app-title">
+        <i class="fas fa-play-circle"></i>
+        Nonton Drama <span class="badge dub">Test</span>
+      </h1>
+    </header>
+
+
+    <!-- Search -->
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Cari drama..." autocomplete="off">
+            <button class="search-btn" onclick="searchDrama()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="categories">
+        <button class="category-btn active" onclick="loadLatest()">Terbaru</button>
+        <button class="category-btn" onclick="loadTrending()">Trending</button>
+    </div>
+
+    <!-- Content Area -->
+    <main class="content" id="content">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Memuat...</p>
+        </div>
+    </main>
+
+    <!-- Video Player -->
+    <div class="video-container" id="videoContainer">
+        <video class="video-player" id="videoPlayer" controls playsinline></video>
+        <div class="video-controls">
+          <button class="back-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+
+          <div style="display:flex;gap:12px">
+            <button class="back-btn" onclick="prevEpisode()">
+              <i class="fas fa-backward"></i>
+            </button>
+            <button class="back-btn" onclick="nextEpisode()">
+              <i class="fas fa-forward"></i>
+            </button>
+          </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="loadLatest()">
+            <i class="fas fa-home"></i>
+            Home
+        </button>
+        <!-- <button class="nav-btn" onclick="focusSearch()">
+            <i class="fas fa-search"></i>
+            Cari
+        </button> -->
+        <button class="nav-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+            Kembali
+        </button>
+    </nav>
+
+    <script>
+      let currentEpisodes = [];
+      let currentEpisodeIndex = -1;
+
+      /* ================= CONFIG ================= */
+      const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
+
+      const PROXY_LIST = [
+        'https://api.codetabs.com/v1/proxy?quest=',
+        'https://thingproxy.freeboard.io/fetch/',
+        'https://api.allorigins.win/raw?url='
+      ];
+
+      const cache = new Map();
+      const CACHE_DURATION = 5 * 60 * 1000;
+
+      /* ================= DOM ================= */
+      const content = document.getElementById("content");
+      const videoContainer = document.getElementById("videoContainer");
+      const videoPlayer = document.getElementById("videoPlayer");
+      const searchInput = document.getElementById("searchInput");
+
+      /* ================= INIT ================= */
+      document.addEventListener("DOMContentLoaded", () => {
+        loadLatest();
+        searchInput.addEventListener("keypress", e => {
+          if (e.key === "Enter") searchDrama();
+        });
+      });
+
+      /* ================= SMART FETCH ================= */
+      async function smartFetch(endpoint, params = {}) {
+        const cacheKey = endpoint + JSON.stringify(params);
+        const cached = cache.get(cacheKey);
+
+        if (cached && Date.now() - cached.time < CACHE_DURATION) {
+          return cached.data;
+        }
+
+        const url = new URL(`${API_BASE}/${endpoint}`);
+        Object.entries(params).forEach(([k, v]) => url.searchParams.append(k, v));
+        const target = url.toString();
+
+        async function tryFetch(fetchUrl) {
+          try {
+            const r = await fetch(fetchUrl);
+            if (!r.ok) return null;
+            const ct = r.headers.get("content-type") || "";
+            if (!ct.includes("json")) return null;
+            return await r.json();
+          } catch {
+            return null;
+          }
+        }
+
+        let data = await tryFetch(target);
+        if (!data) {
+          for (const p of PROXY_LIST) {
+            data = await tryFetch(p + encodeURIComponent(target));
+            if (data) break;
+          }
+        }
+
+        if (!data) throw "fetch failed";
+
+        cache.set(cacheKey, { data, time: Date.now() });
+        return data;
+      }
+
+      /* ================= LIST ================= */
+      async function loadLatest() {
+        showLoading();
+        try {
+          const json = await smartFetch("latest");
+          setActiveCategory("latest");
+          renderGrid(json.books || []);
+        } catch {
+          showError("Gagal memuat terbaru");
+        }
+      }
+
+      async function loadTrending() {
+        showLoading();
+        try {
+          const json = await smartFetch("trending");
+          setActiveCategory("trending");
+          renderGrid(json.books || []);
+        } catch {
+          showError("Gagal memuat trending");
+        }
+      }
+
+      async function searchDrama() {
+        const q = searchInput.value.trim();
+        if (!q) return;
+
+        showLoading();
+
+        try {
+          const json = await smartFetch("search", { query: q });
+
+          const groups = json?.data?.search_data || [];
+
+          const books = groups.flatMap(g => g.books || []);
+
+          if (!books.length) {
+            showError("Drama tidak ditemukan");
+            return;
+          }
+
+          renderGrid(books);
+        } catch (e) {
+          console.error(e);
+          showError("Pencarian gagal");
+        }
+      }
+
+      function renderGrid(books) {
+        if (!books.length) return showError("Tidak ada drama");
+
+        content.innerHTML = `
+          <div class="grid">
+            ${books.map(b => `
+              <div class="card" onclick="loadDetail('${b.book_id}')">
+              ${renderBadges(b)}
+                <div class="card-img"
+                     style="background-image:url('${thumbProxy(b.thumb_url)}')">
+                </div>
+
+                <div class="card-info">
+                  <div class="card-title">
+                    ${b.search_high_light?.title?.rich_text || b.book_name}
+                  </div>
+
+                  <div class="card-meta">${b.show_creation_status || ""}</div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      /* ================= DETAIL ================= */
+      async function loadDetail(bookId) {
+        showLoading();
+        try {
+          const json = await smartFetch(`detail/${bookId}`);
+          const data = json.data.video_data;
+
+          currentEpisodes = data.video_list;
+
+          content.innerHTML = `
+            <h2 class="detail-title">${data.series_title}</h2>
+            <div class="episode-list">
+              ${data.video_list.map((v, i) => `
+                <div class="episode-item" onclick="playEpisode(${i})">
+                  <div class="episode-title">Episode ${v.vid_index}</div>
+                  <div class="episode-play"><i class="fas fa-play"></i></div>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        } catch {
+          showError("Detail gagal dimuat");
+        }
+      }
+
+      /* ================= STREAM ================= */
+      function decode64(str) {
+        try {
+          return atob(str);
+        } catch {
+          return null;
+        }
+      }
+
+      async function playVideo(vid) {
+        try {
+          const json = await smartFetch(`stream/${vid}`);
+          const data = json?.data;
+
+          let videoUrl = null;
+
+          if (data?.main_url) videoUrl = data.main_url;
+          else if (data?.backup_url) videoUrl = data.backup_url;
+
+          if (!videoUrl && data?.video_model?.video_list) {
+            const list = data.video_model.video_list;
+            const priority = ["video_5","video_4","video_3","video_2","video_1"];
+            for (const k of priority) {
+              if (list[k]?.main_url) {
+                const decoded = decode64(list[k].main_url);
+                if (decoded) {
+                  videoUrl = decoded;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!videoUrl) throw "no video";
+
+          videoPlayer.src = videoUrl;
+          videoContainer.style.display = "block";
+          videoPlayer.load();
+          videoPlayer.play().catch(() => {});
+
+        } catch {
+          alert("Video gagal diputar");
+        }
+      }
+
+      /* ================= UI ================= */
+      function goBack() {
+        if (videoContainer.style.display === "block") {
+          videoContainer.style.display = "none";
+          videoPlayer.pause();
+          videoPlayer.src = "";
+        } else loadLatest();
+      }
+
+      function focusSearch() {
+        searchInput.focus();
+      }
+
+      function setActiveCategory(type) {
+        document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
+        if (type === "latest") document.querySelectorAll(".category-btn")[0]?.classList.add("active");
+        if (type === "trending") document.querySelectorAll(".category-btn")[1]?.classList.add("active");
+      }
+
+      function showLoading() {
+        content.innerHTML = `
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Memuat...</p>
+          </div>
+        `;
+      }
+
+      function showError(msg) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <p>${msg}</p>
+          </div>
+        `;
+      }
+
+      function playEpisode(index) {
+        if (!currentEpisodes[index]) return;
+        currentEpisodeIndex = index;
+        playVideo(currentEpisodes[index].vid);
+      }
+      function nextEpisode() {
+        if (currentEpisodeIndex < currentEpisodes.length - 1) {
+          playEpisode(currentEpisodeIndex + 1);
+        }
+      }
+
+      function prevEpisode() {
+        if (currentEpisodeIndex > 0) {
+          playEpisode(currentEpisodeIndex - 1);
+        }
+      }
+
+      /* AUTO PLAY NEXT */
+      videoPlayer.addEventListener("ended", () => {
+        nextEpisode();
+      });
+      videoPlayer.setAttribute("playsinline", true);
+      videoPlayer.setAttribute("webkit-playsinline", true);
+      
+      let controlsTimeout;
+
+      function showVideoControls() {
+        const c = document.querySelector(".video-controls");
+        c.style.opacity = "1";
+        clearTimeout(controlsTimeout);
+        controlsTimeout = setTimeout(() => {
+          c.style.opacity = "0";
+        }, 2500);
+      }
+
+      videoContainer.addEventListener("touchstart", showVideoControls);
+      videoContainer.addEventListener("mousemove", showVideoControls);
+
+      function thumbProxy(url) {
+        if (!url) return "";
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&fit=cover&output=jpg`;
+      }
+
+      function renderBadges(b) {
+        const badges = [];
+
+        if (b.is_hot === "1") badges.push(`<span class="badge hot">🔥 HOT</span>`);
+        if (b.is_new_book === "1") badges.push(`<span class="badge new">🆕 NEW</span>`);
+        if (b.is_exclusive === "1") badges.push(`<span class="badge exclusive">⭐ EXCLUSIVE</span>`);
+        if (b.is_dubbed === "1") badges.push(`<span class="badge dub">🎧 DUB</span>`);
+        if (b.is_native === "1") badges.push(`<span class="badge original">🌱 ORIGINAL</span>`);
+        if (b.in_bookshelf === "1") badges.push(`<span class="badge saved">✔️ SAVED</span>`);
+
+        if (!badges.length) return "";
+        return `<div class="badges">${badges.join("")}</div>`;
+      }
+    </script>
+    <div class="global-watermark">© emenodon</div>
+
+</body>
+</html>
