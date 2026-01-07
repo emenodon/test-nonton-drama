@@ -381,6 +381,18 @@
             overflow: hidden;
         }
 
+        .resolution-select {
+          pointer-events: auto;
+          background: rgba(0,0,0,0.55);
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          border-radius: 8px;
+          font-size: 0.8rem;
+          outline: none;
+          backdrop-filter: blur(8px);
+        }
+
         .badges {
           position: absolute;
           top: 8px;
@@ -485,7 +497,9 @@
             <i class="fas fa-arrow-left"></i>
           </button>
 
-          <div style="display:flex;gap:12px">
+          <div style="display:flex;gap:10px;align-items:center">
+            <select id="resolutionSelect" class="resolution-select"></select>
+
             <button class="back-btn" onclick="prevEpisode()">
               <i class="fas fa-backward"></i>
             </button>
@@ -515,6 +529,8 @@
     <script>
       let currentEpisodes = [];
       let currentEpisodeIndex = -1;
+      let currentVideoSources = {};
+      let currentTimeCache = 0;
 
       /* ================= CONFIG ================= */
       const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
@@ -680,7 +696,10 @@
       }
 
       /* ================= STREAM ================= */
-      function decode64(str) {
+      function decodeUrl(str) {
+        if (!str) return null;
+        if (str.startsWith("http")) return str;
+
         try {
           return atob(str);
         } catch {
@@ -688,38 +707,63 @@
         }
       }
 
+
       async function playVideo(vid) {
         try {
           const json = await smartFetch(`stream/${vid}`);
           const data = json?.data;
 
-          let videoUrl = null;
-
-          if (data?.main_url) videoUrl = data.main_url;
-          else if (data?.backup_url) videoUrl = data.backup_url;
-
-          if (!videoUrl && data?.video_model?.video_list) {
-            const list = data.video_model.video_list;
-            const priority = ["video_5","video_4","video_3","video_2","video_1"];
-            for (const k of priority) {
-              if (list[k]?.main_url) {
-                const decoded = decode64(list[k].main_url);
-                if (decoded) {
-                  videoUrl = decoded;
-                  break;
-                }
-              }
-            }
+          let videoModel = data?.video_model;
+          if (typeof videoModel === "string") {
+            videoModel = JSON.parse(videoModel);
           }
 
-          if (!videoUrl) throw "no video";
+          const list = videoModel?.video_list;
+          if (!list) throw "no sources";
 
-          videoPlayer.src = videoUrl;
+          currentVideoSources = {};
+          const select = document.getElementById("resolutionSelect");
+          select.innerHTML = "";
+
+          Object.entries(list).forEach(([key, v]) => {
+            if (!v?.main_url) return;
+
+            const url = decodeUrl(v.main_url);
+            if (!url) return;
+
+            const label = v.definition || key.replace("video_", "") + "p";
+            currentVideoSources[label] = url;
+
+            const opt = document.createElement("option");
+            opt.value = label;
+            opt.textContent = label;
+            select.appendChild(opt);
+          });
+
+          if (!Object.keys(currentVideoSources).length && data?.main_url) {
+            currentVideoSources["Auto"] = data.main_url;
+            select.innerHTML = `<option value="Auto">Auto</option>`;
+          }
+
+          const defaultRes = Object.keys(currentVideoSources).pop();
+          if (!defaultRes) throw "no playable url";
+
+          select.value = defaultRes;
+
+          const auto = videoModel.auto_definition;
+          if (auto && currentVideoSources[auto]) {
+            select.value = auto;
+          }
+
+          videoPlayer.src = currentVideoSources[defaultRes];
           videoContainer.style.display = "block";
           videoPlayer.load();
           videoPlayer.play().catch(() => {});
 
-        } catch {
+          select.onchange = () => switchResolution(select.value);
+
+        } catch (e) {
+          console.error(e);
           alert("Video gagal diputar");
         }
       }
@@ -826,6 +870,19 @@
           '"':"&quot;",
           "'":"&#039;"
         }[m]));
+      }
+
+      function switchResolution(res) {
+        if (!currentVideoSources[res]) return;
+
+        currentTimeCache = videoPlayer.currentTime;
+        videoPlayer.src = currentVideoSources[res];
+        videoPlayer.load();
+
+        videoPlayer.onloadedmetadata = () => {
+          videoPlayer.currentTime = currentTimeCache;
+          videoPlayer.play().catch(() => {});
+        };
       }
     </script>
     <div class="global-watermark">© emenodon</div>
