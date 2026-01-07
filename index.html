@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nonton Drama</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+      const IS_LITE =
+        (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
+        /Android [5-8]/i.test(navigator.userAgent) ||
+        window.innerWidth <= 360;
+
+      if (IS_LITE) {
+        document.documentElement.classList.add("lite");
+      }
+    </script>
     <style>
         :root {
             --primary: #6366f1;
@@ -125,7 +135,7 @@
             font-size: 0.9rem;
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform 0.15s, background 0.15s;
             flex-shrink: 0;
         }
 
@@ -178,6 +188,19 @@
             z-index: 1;
         }
 
+        .card-img img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .card,
+        .episode-item {
+          contain: layout paint;
+        }
+
+
         .card-info {
             padding: 12px;
             height: 30%;
@@ -204,6 +227,19 @@
         .card-meta {
             font-size: 0.8rem;
             color: var(--text-secondary);
+        }
+
+        .card,
+        .card-img,
+        .episode-item {
+          will-change: transform;
+          transform: translateZ(0);
+        }
+
+        body.scrolling .card,
+        body.scrolling .search-box,
+        body.scrolling .episode-item {
+          box-shadow: none !important;
         }
 
         /* Episode List */
@@ -346,7 +382,7 @@
             padding: 8px 0;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform 0.15s, background 0.15s;
             font-size: 0.8rem;
         }
 
@@ -437,6 +473,14 @@
         }
 
         /* Responsive */
+        @media (max-width: 768px) {
+          .badge,
+          .back-btn,
+          .resolution-select {
+            backdrop-filter: none;
+          }
+        }
+
         @media (max-width: 480px) {
             .grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -452,6 +496,73 @@
             .grid {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
+        }
+
+        /* ================= ULTRA LITE MODE ================= */
+        .lite * {
+          animation: none !important;
+          transition: none !important;
+        }
+
+        .lite .card,
+        .lite .search-box,
+        .lite .episode-item,
+        .lite .header,
+        .lite .bottom-nav {
+          box-shadow: none !important;
+        }
+
+        .lite .badge,
+        .lite .back-btn,
+        .lite .resolution-select {
+          backdrop-filter: none !important;
+        }
+
+        .lite .grid {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .lite .card {
+          display: flex;
+          height: 100px;
+          aspect-ratio: auto;
+        }
+
+        .lite .card-img {
+          width: 70px;
+          height: 100%;
+          flex-shrink: 0;
+        }
+
+        .lite .card-info {
+          height: auto;
+          padding: 8px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .lite .badges {
+          top: 0px;
+          left: auto;
+          right: 0px;
+          display: flex;
+          position: absolute;
+        }
+
+        .lite .card-title {
+          font-size: 0.9rem;
+        }
+
+        .lite .video-controls {
+          opacity: 1 !important;
+        }
+
+        .lite .global-watermark {
+          display: none;
         }
     </style>
 </head>
@@ -556,6 +667,11 @@
         searchInput.addEventListener("keypress", e => {
           if (e.key === "Enter") searchDrama();
         });
+        if (IS_LITE) {
+          document.querySelector(".app-title")
+            .insertAdjacentHTML("beforeend",
+              `<span class="badge saved">LITE</span>`);
+        }
       });
 
       /* ================= SMART FETCH ================= */
@@ -647,27 +763,68 @@
 
       function renderGrid(books) {
         if (!books.length) return showError("Tidak ada drama");
+        if (IS_LITE) return renderGridLite(books);
 
         content.innerHTML = `
           <div class="grid">
             ${books.map(b => `
               <div class="card" onclick="loadDetail('${b.book_id}')">
-              ${renderBadges(b)}
-                <div class="card-img"
-                     style="background-image:url('${thumbProxy(b.thumb_url)}')">
+                ${renderBadges(b)}
+                <div class="card-img">
+                  <img src="${thumbProxy(b.thumb_url)}"
+                       loading="lazy"
+                       decoding="async">
                 </div>
-
                 <div class="card-info">
                   <div class="card-title">
                     ${escapeHTML(b.search_high_light?.title?.rich_text || b.book_name)}
                   </div>
-
                   <div class="card-meta">${b.show_creation_status || ""}</div>
                 </div>
               </div>
             `).join("")}
           </div>
         `;
+      }
+
+      function renderGridLite(books) {
+        content.innerHTML = `<div class="grid" id="grid"></div>`;
+        const grid = document.getElementById("grid");
+
+        let i = 0;
+        const CHUNK = 6;
+
+        function renderChunk() {
+          const slice = books.slice(i, i + CHUNK);
+
+          slice.forEach(b => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.onclick = () => loadDetail(b.book_id);
+
+            card.innerHTML = `
+              ${renderBadges(b)}
+              <div class="card-img">
+                <img src="${thumbProxy(b.thumb_url)}"
+                     loading="lazy"
+                     decoding="async">
+              </div>
+              <div class="card-info">
+                <div class="card-title">${escapeHTML(b.book_name)}</div>
+                <div class="card-meta">${b.show_creation_status || ""}</div>
+              </div>
+            `;
+
+            grid.appendChild(card);
+          });
+
+          i += CHUNK;
+          if (i < books.length) {
+            requestAnimationFrame(renderChunk);
+          }
+        }
+
+        renderChunk();
       }
 
       /* ================= DETAIL ================= */
@@ -707,7 +864,6 @@
         }
       }
 
-
       async function playVideo(vid) {
         try {
           const json = await smartFetch(`stream/${vid}`);
@@ -745,7 +901,7 @@
             select.innerHTML = `<option value="Auto">Auto</option>`;
           }
 
-          const defaultRes = Object.keys(currentVideoSources).pop();
+          const defaultRes = Object.keys(currentVideoSources).sort((a, b) => parseInt(a) - parseInt(b))[0];
           if (!defaultRes) throw "no playable url";
 
           select.value = defaultRes;
@@ -753,6 +909,11 @@
           const auto = videoModel.auto_definition;
           if (auto && currentVideoSources[auto]) {
             select.value = auto;
+          }
+
+          if (IS_LITE) {
+            videoPlayer.preload = "metadata";
+            videoPlayer.controlsList = "nofullscreen noremoteplayback";
           }
 
           videoPlayer.src = currentVideoSources[defaultRes];
@@ -845,7 +1006,10 @@
 
       function thumbProxy(url) {
         if (!url) return "";
-        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&fit=cover&output=jpg`;
+        const size = IS_LITE ? 240 : 400;
+        const quality = IS_LITE ? 60 : 80;
+
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=${size}&q=${quality}&output=jpg`;
       }
 
       function renderBadges(b) {
@@ -884,6 +1048,17 @@
           videoPlayer.play().catch(() => {});
         };
       }
+
+      let scrollTimer;
+      window.addEventListener("scroll", () => {
+        document.body.classList.add("scrolling");
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          document.body.classList.remove("scrolling");
+        }, 150);
+      }, { passive: true });
+
+      document.addEventListener("touchmove", () => {}, { passive: true });
     </script>
     <div class="global-watermark">© emenodon</div>
 
