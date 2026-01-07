@@ -969,6 +969,8 @@
       function playEpisode(index) {
         if (!currentEpisodes[index]) return;
         currentEpisodeIndex = index;
+
+        currentTimeCache = 0;
         playVideo(currentEpisodes[index].vid);
       }
       function nextEpisode() {
