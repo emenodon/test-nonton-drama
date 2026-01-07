@@ -643,7 +643,7 @@
 
                 <div class="card-info">
                   <div class="card-title">
-                    ${b.search_high_light?.title?.rich_text || b.book_name}
+                    ${escapeHTML(b.search_high_light?.title?.rich_text || b.book_name)}
                   </div>
 
                   <div class="card-meta">${b.show_creation_status || ""}</div>
@@ -816,6 +816,16 @@
 
         if (!badges.length) return "";
         return `<div class="badges">${badges.join("")}</div>`;
+      }
+
+      function escapeHTML(str = "") {
+        return str.replace(/[&<>"']/g, m => ({
+          "&":"&amp;",
+          "<":"&lt;",
+          ">":"&gt;",
+          '"':"&quot;",
+          "'":"&#039;"
+        }[m]));
       }
     </script>
     <div class="global-watermark">© emenodon</div>
