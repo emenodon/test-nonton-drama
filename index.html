@@ -9,7 +9,7 @@
       const IS_LITE =
         (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
         /Android [5-8]/i.test(navigator.userAgent) ||
-        window.innerWidth <= 360;
+        window.innerWidth <= 700;
 
       if (IS_LITE) {
         document.documentElement.classList.add("lite");
@@ -451,6 +451,38 @@
           gap: 10px;
         }
 
+        .load-more {
+            text-align: center;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .load-more-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .load-more-btn:active {
+            background: var(--primary-dark);
+        }
+
+        .load-more-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .infinite-loading {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
         @media (max-width: 768px) {
           .badge,
           .back-btn,
@@ -505,6 +537,7 @@
           display: flex;
           height: 100px;
           aspect-ratio: auto;
+          width: 100%;
         }
 
         .lite .card-img {
@@ -617,6 +650,15 @@
       let currentEpisodeIndex = -1;
       let currentVideoSources = {};
       let currentTimeCache = 0;
+      
+      let searchState = {
+          query: '',
+          offset: 0,
+          limit: 10,
+          hasMore: false,
+          loading: false,
+          totalResults: []
+      };
 
       const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
 
@@ -644,7 +686,25 @@
             .insertAdjacentHTML("beforeend",
               `<span class="badge saved">LITE</span>`);
         }
+        
+        setupInfiniteScroll();
       });
+
+      function setupInfiniteScroll() {
+        window.addEventListener('scroll', handleScroll);
+      }
+
+      function handleScroll() {
+        if (searchState.loading || !searchState.hasMore) return;
+        
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = window.innerHeight;
+        
+        if (scrollTop + clientHeight >= scrollHeight - 300) {
+          loadMoreSearch();
+        }
+      }
 
       async function smartFetch(endpoint, params = {}) {
         const cacheKey = endpoint + JSON.stringify(params);
@@ -710,12 +770,26 @@
         const q = searchInput.value.trim();
         if (!q) return;
 
-        showLoading();
+        searchState = {
+            query: q,
+            offset: 0,
+            limit: 10,
+            hasMore: false,
+            loading: false,
+            totalResults: []
+        };
+
+        showSearchLoading();
 
         try {
-          const json = await smartFetch("search", { query: q });
+          const json = await smartFetch("search", { 
+            query: q,
+            limit: searchState.limit,
+            offset: searchState.offset
+          });
 
-          const groups = json?.data?.search_data || [];
+          const data = json?.data;
+          const groups = data?.search_data || [];
 
           const books = groups.flatMap(g => g.books || []);
 
@@ -724,10 +798,143 @@
             return;
           }
 
-          renderGrid(books);
+          searchState.totalResults = books;
+          searchState.hasMore = data?.has_more || false;
+          searchState.offset = data?.next_offset || searchState.offset + searchState.limit;
+
+          renderSearchResults(books, true);
         } catch (e) {
           console.error(e);
           showError("Pencarian gagal");
+        }
+      }
+
+      async function loadMoreSearch() {
+        if (searchState.loading || !searchState.hasMore) return;
+        
+        searchState.loading = true;
+        
+        try {
+          const json = await smartFetch("search", { 
+            query: searchState.query,
+            limit: searchState.limit,
+            offset: searchState.offset
+          });
+
+          const data = json?.data;
+          const groups = data?.search_data || [];
+
+          const newBooks = groups.flatMap(g => g.books || []);
+
+          if (newBooks.length) {
+            searchState.totalResults = [...searchState.totalResults, ...newBooks];
+            searchState.hasMore = data?.has_more || false;
+            searchState.offset = data?.next_offset || searchState.offset + searchState.limit;
+            
+            renderSearchResults(searchState.totalResults, false);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          searchState.loading = false;
+        }
+      }
+
+      function showSearchLoading() {
+        content.innerHTML = `
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Mencari "${searchState.query}"...</p>
+          </div>
+        `;
+      }
+
+      function renderSearchResults(books, isInitial = true) {
+        if (!books.length) return showError("Tidak ada drama ditemukan");
+        
+        if (isInitial) {
+          content.innerHTML = `
+            <div class="grid" id="searchGrid">
+              ${books.map(b => createCardHTML(b)).join("")}
+            </div>
+            ${searchState.hasMore ? `
+              <div class="load-more">
+                <button class="load-more-btn" onclick="loadMoreSearch()">
+                  Muat Lebih Banyak
+                </button>
+              </div>
+            ` : ''}
+          `;
+        } else {
+          const grid = document.getElementById("searchGrid");
+          if (!grid) return;
+          
+          books.slice(-searchState.limit).forEach(b => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.onclick = () => loadDetail(b.book_id);
+            card.innerHTML = createCardHTML(b);
+            grid.appendChild(card);
+          });
+          
+          updateLoadMoreButton();
+        }
+        
+        if (IS_LITE && isInitial) {
+          setTimeout(() => {
+            const grid = document.getElementById("searchGrid");
+            if (grid) {
+              Array.from(grid.children).forEach(card => {
+                card.addEventListener('click', (e) => {
+                  const bookId = card.getAttribute('data-book-id');
+                  if (bookId) loadDetail(bookId);
+                });
+              });
+            }
+          }, 100);
+        }
+      }
+
+      function createCardHTML(b) {
+        return `
+          <div class="card" data-book-id="${b.book_id}">
+            ${renderBadges(b)}
+            <div class="card-img">
+              <img src="${thumbProxy(b.thumb_url)}"
+                   loading="lazy"
+                   decoding="async">
+            </div>
+            <div class="card-info">
+              <div class="card-title">
+                ${escapeHTML(b.search_high_light?.title?.rich_text || b.book_name)}
+              </div>
+              <div class="card-meta">${b.show_creation_status || ""}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      function updateLoadMoreButton() {
+        const loadMoreBtn = document.querySelector('.load-more-btn');
+        if (loadMoreBtn) {
+          if (!searchState.hasMore) {
+            loadMoreBtn.parentElement.remove();
+          } else if (searchState.loading) {
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
+          } else {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Muat Lebih Banyak';
+          }
+        } else if (searchState.hasMore && document.querySelector('.grid')) {
+          const loadMoreDiv = document.createElement('div');
+          loadMoreDiv.className = 'load-more';
+          loadMoreDiv.innerHTML = `
+            <button class="load-more-btn" onclick="loadMoreSearch()">
+              Muat Lebih Banyak
+            </button>
+          `;
+          content.appendChild(loadMoreDiv);
         }
       }
 
