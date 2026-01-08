@@ -866,68 +866,120 @@
 
       async function playVideo(vid) {
         try {
-          const json = await smartFetch(`stream/${vid}`);
-          const data = json?.data;
+            if (currentTimeCache === undefined) {
+                currentTimeCache = 0;
+            }
+            const json = await smartFetch(`stream/${vid}`);
+            const data = json?.data;
 
-          let videoModel = data?.video_model;
-          if (typeof videoModel === "string") {
-            videoModel = JSON.parse(videoModel);
-          }
+            let videoModel = data?.video_model;
+            if (typeof videoModel === "string") {
+                videoModel = JSON.parse(videoModel);
+            }
 
-          const list = videoModel?.video_list;
-          if (!list) throw "no sources";
+            const list = videoModel?.video_list;
+            if (!list) throw "no sources";
 
-          currentVideoSources = {};
-          const select = document.getElementById("resolutionSelect");
-          select.innerHTML = "";
+            currentVideoSources = {};
+            const resolutions = [];
 
-          Object.entries(list).forEach(([key, v]) => {
-            if (!v?.main_url) return;
+            Object.entries(list).forEach(([key, v]) => {
+                if (!v?.main_url) return;
 
-            const url = decodeUrl(v.main_url);
-            if (!url) return;
+                const url = decodeUrl(v.main_url);
+                if (!url) return;
 
-            const label = v.definition || key.replace("video_", "") + "p";
-            currentVideoSources[label] = url;
+                const resKey = v.definition || key.replace("video_", "") + "p";
+                const resNum = parseInt(resKey) || 0;
+                
+                resolutions.push({
+                    label: resKey,
+                    value: resKey,
+                    url: url,
+                    numeric: resNum
+                });
+                
+                currentVideoSources[resKey] = url;
+            });
 
-            const opt = document.createElement("option");
-            opt.value = label;
-            opt.textContent = label;
-            select.appendChild(opt);
-          });
+            if (!resolutions.length && data?.main_url) {
+                resolutions.push({
+                    label: "Auto",
+                    value: "Auto",
+                    url: data.main_url,
+                    numeric: 0
+                });
+                currentVideoSources["Auto"] = data.main_url;
+            }
 
-          if (!Object.keys(currentVideoSources).length && data?.main_url) {
-            currentVideoSources["Auto"] = data.main_url;
-            select.innerHTML = `<option value="Auto">Auto</option>`;
-          }
+            resolutions.sort((a, b) => {
+                const aNum = parseResolutionNumber(a.label);
+                const bNum = parseResolutionNumber(b.label);
+                return aNum - bNum;
+            });
 
-          const defaultRes = Object.keys(currentVideoSources).sort((a, b) => parseInt(a) - parseInt(b))[0];
-          if (!defaultRes) throw "no playable url";
+            const select = document.getElementById("resolutionSelect");
+            select.innerHTML = "";
+            
+            resolutions.forEach(res => {
+                const opt = document.createElement("option");
+                opt.value = res.value;
+                opt.textContent = res.label;
+                select.appendChild(opt);
+            });
 
-          select.value = defaultRes;
+            if (!resolutions.length) throw "no playable url";
 
-          const auto = videoModel.auto_definition;
-          if (auto && currentVideoSources[auto]) {
-            select.value = auto;
-          }
+            select.value = resolutions[0].value;
 
-          if (IS_LITE) {
-            videoPlayer.preload = "metadata";
-            videoPlayer.controlsList = "nofullscreen noremoteplayback";
-          }
+            const auto = videoModel?.auto_definition;
+            if (auto && currentVideoSources[auto]) {
+                const autoRes = resolutions.find(r => r.value === auto);
+                if (autoRes) {
+                    select.value = auto;
+                }
+            }
 
-          videoPlayer.src = currentVideoSources[defaultRes];
-          videoContainer.style.display = "block";
-          videoPlayer.load();
-          videoPlayer.play().catch(() => {});
+            if (IS_LITE) {
+                videoPlayer.preload = "metadata";
+                videoPlayer.controlsList = "nofullscreen noremoteplayback";
+            }
 
-          select.onchange = () => switchResolution(select.value);
+            videoPlayer.src = currentVideoSources[select.value];
+            videoContainer.style.display = "block";
+            videoPlayer.load();
+            videoPlayer.onloadedmetadata = () => {
+                videoPlayer.currentTime = currentTimeCache;
+                videoPlayer.play().catch(() => {});
+            };
+
+
+            select.onchange = () => switchResolution(select.value);
 
         } catch (e) {
-          console.error(e);
-          alert("Video gagal diputar");
+            console.error(e);
+            alert("Video gagal diputar");
         }
-      }
+    }
+    function parseResolutionNumber(resStr) {
+        if (!resStr) return 0;
+        
+        const match = resStr.match(/\d+/);
+        if (match) {
+            return parseInt(match[0]);
+        }
+        
+        const lower = resStr.toLowerCase();
+        if (lower.includes('4k') || lower.includes('2160')) return 2160;
+        if (lower.includes('1080') || lower.includes('fhd')) return 1080;
+        if (lower.includes('720') || lower.includes('hd')) return 720;
+        if (lower.includes('480') || lower.includes('sd')) return 480;
+        if (lower.includes('360')) return 360;
+        if (lower.includes('240')) return 240;
+        if (lower.includes('144')) return 144;
+        
+        return 0;
+    }
 
       /* ================= UI ================= */
       function goBack() {
@@ -935,6 +987,7 @@
           videoContainer.style.display = "none";
           videoPlayer.pause();
           videoPlayer.src = "";
+          currentTimeCache = 0;
         } else loadLatest();
       }
 
@@ -969,18 +1022,18 @@
       function playEpisode(index) {
         if (!currentEpisodes[index]) return;
         currentEpisodeIndex = index;
-
-        currentTimeCache = 0;
         playVideo(currentEpisodes[index].vid);
       }
       function nextEpisode() {
         if (currentEpisodeIndex < currentEpisodes.length - 1) {
+          currentTimeCache = 0;
           playEpisode(currentEpisodeIndex + 1);
         }
       }
 
       function prevEpisode() {
         if (currentEpisodeIndex > 0) {
+          currentTimeCache = 0;
           playEpisode(currentEpisodeIndex - 1);
         }
       }
