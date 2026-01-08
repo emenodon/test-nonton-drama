@@ -44,7 +44,6 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             padding: 16px;
@@ -64,7 +63,6 @@
             gap: 10px;
         }
 
-        /* Search */
         .search-container {
             padding: 16px;
             background: var(--bg);
@@ -112,7 +110,6 @@
             transform: scale(0.95);
         }
 
-        /* Categories */
         .categories {
             padding: 0 16px 16px;
             display: flex;
@@ -144,13 +141,11 @@
             color: white;
         }
 
-        /* Content */
         .content {
             padding: 0 16px 80px;
             min-height: 60vh;
         }
 
-        /* Grid View */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -200,7 +195,6 @@
           contain: layout paint;
         }
 
-
         .card-info {
             padding: 12px;
             height: 30%;
@@ -242,7 +236,6 @@
           box-shadow: none !important;
         }
 
-        /* Episode List */
         .episode-list {
             padding: 0;
         }
@@ -273,7 +266,6 @@
             font-size: 1.2rem;
         }
 
-        /* Video Player */
         .video-container {
             position: fixed;
             top: 0;
@@ -322,7 +314,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Loading */
         .loading {
             text-align: center;
             padding: 40px 20px;
@@ -343,7 +334,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -356,7 +346,6 @@
             opacity: 0.5;
         }
 
-        /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -400,7 +389,6 @@
             bottom: 80px;
             right: 12px;
             z-index: 50;
-
             font-size: 0.65rem;
             opacity: 0.4;
             pointer-events: none;
@@ -410,7 +398,6 @@
             font-size: clamp(1.1rem, 4.5vw, 1.4rem);
             font-weight: 700;
             margin-bottom: 16px;
-
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -464,15 +451,6 @@
           gap: 10px;
         }
 
-        .app-subtitle {
-          text-align: center;
-          font-size: 0.75rem;
-          opacity: 0.85;
-          margin-top: 2px;
-          letter-spacing: 0.5px;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
           .badge,
           .back-btn,
@@ -498,7 +476,6 @@
             }
         }
 
-        /* ================= ULTRA LITE MODE ================= */
         .lite * {
           animation: none !important;
           transition: none !important;
@@ -564,10 +541,18 @@
         .lite .global-watermark {
           display: none;
         }
+        
+        .lite .video-controls {
+          transition: none !important;
+        }
+        
+        .lite .back-btn,
+        .lite .resolution-select {
+          background: rgba(0,0,0,0.7) !important;
+        }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
       <h1 class="app-title">
         <i class="fas fa-play-circle"></i>
@@ -575,8 +560,6 @@
       </h1>
     </header>
 
-
-    <!-- Search -->
     <div class="search-container">
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Cari drama..." autocomplete="off">
@@ -586,13 +569,11 @@
         </div>
     </div>
 
-    <!-- Categories -->
     <div class="categories">
         <button class="category-btn active" onclick="loadLatest()">Terbaru</button>
         <button class="category-btn" onclick="loadTrending()">Trending</button>
     </div>
 
-    <!-- Content Area -->
     <main class="content" id="content">
         <div class="loading">
             <div class="loading-spinner"></div>
@@ -600,7 +581,6 @@
         </div>
     </main>
 
-    <!-- Video Player -->
     <div class="video-container" id="videoContainer">
         <video class="video-player" id="videoPlayer" controls playsinline></video>
         <div class="video-controls">
@@ -621,16 +601,11 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <button class="nav-btn active" onclick="loadLatest()">
             <i class="fas fa-home"></i>
             Home
         </button>
-        <!-- <button class="nav-btn" onclick="focusSearch()">
-            <i class="fas fa-search"></i>
-            Cari
-        </button> -->
         <button class="nav-btn" onclick="goBack()">
             <i class="fas fa-arrow-left"></i>
             Kembali
@@ -643,7 +618,6 @@
       let currentVideoSources = {};
       let currentTimeCache = 0;
 
-      /* ================= CONFIG ================= */
       const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
 
       const PROXY_LIST = [
@@ -655,13 +629,11 @@
       const cache = new Map();
       const CACHE_DURATION = 5 * 60 * 1000;
 
-      /* ================= DOM ================= */
       const content = document.getElementById("content");
       const videoContainer = document.getElementById("videoContainer");
       const videoPlayer = document.getElementById("videoPlayer");
       const searchInput = document.getElementById("searchInput");
 
-      /* ================= INIT ================= */
       document.addEventListener("DOMContentLoaded", () => {
         loadLatest();
         searchInput.addEventListener("keypress", e => {
@@ -674,7 +646,6 @@
         }
       });
 
-      /* ================= SMART FETCH ================= */
       async function smartFetch(endpoint, params = {}) {
         const cacheKey = endpoint + JSON.stringify(params);
         const cached = cache.get(cacheKey);
@@ -713,7 +684,6 @@
         return data;
       }
 
-      /* ================= LIST ================= */
       async function loadLatest() {
         showLoading();
         try {
@@ -827,7 +797,6 @@
         renderChunk();
       }
 
-      /* ================= DETAIL ================= */
       async function loadDetail(bookId) {
         showLoading();
         try {
@@ -852,7 +821,6 @@
         }
       }
 
-      /* ================= STREAM ================= */
       function decodeUrl(str) {
         if (!str) return null;
         if (str.startsWith("http")) return str;
@@ -948,11 +916,19 @@
             videoPlayer.src = currentVideoSources[select.value];
             videoContainer.style.display = "block";
             videoPlayer.load();
+
+            if (IS_LITE) {
+                setupLiteControls();
+            } else {
+                setupVideoControls();
+                setupSelectDropdown();
+                showVideoControls();
+            }
+
             videoPlayer.onloadedmetadata = () => {
                 videoPlayer.currentTime = currentTimeCache;
                 videoPlayer.play().catch(() => {});
             };
-
 
             select.onchange = () => switchResolution(select.value);
 
@@ -961,6 +937,7 @@
             alert("Video gagal diputar");
         }
     }
+    
     function parseResolutionNumber(resStr) {
         if (!resStr) return 0;
         
@@ -981,7 +958,6 @@
         return 0;
     }
 
-      /* ================= UI ================= */
       function goBack() {
         if (videoContainer.style.display === "block") {
           videoContainer.style.display = "none";
@@ -1021,9 +997,11 @@
 
       function playEpisode(index) {
         if (!currentEpisodes[index]) return;
+        currentTimeCache = 0;
         currentEpisodeIndex = index;
         playVideo(currentEpisodes[index].vid);
       }
+      
       function nextEpisode() {
         if (currentEpisodeIndex < currentEpisodes.length - 1) {
           currentTimeCache = 0;
@@ -1038,7 +1016,6 @@
         }
       }
 
-      /* AUTO PLAY NEXT */
       videoPlayer.addEventListener("ended", () => {
         nextEpisode();
       });
@@ -1046,18 +1023,195 @@
       videoPlayer.setAttribute("webkit-playsinline", true);
       
       let controlsTimeout;
+      let isControlsVisible = false;
+      let isSelectOpen = false;
+      let liteControlsTimeout;
 
       function showVideoControls() {
         const c = document.querySelector(".video-controls");
+        if (!c) return;
+        
         c.style.opacity = "1";
+        isControlsVisible = true;
+        
+        if (isSelectOpen) return;
+        
         clearTimeout(controlsTimeout);
         controlsTimeout = setTimeout(() => {
-          c.style.opacity = "0";
+            if (!videoPlayer.paused && !videoPlayer.ended && !isSelectOpen) {
+                c.style.opacity = "0";
+                isControlsVisible = false;
+            }
         }, 2500);
       }
 
-      videoContainer.addEventListener("touchstart", showVideoControls);
-      videoContainer.addEventListener("mousemove", showVideoControls);
+      function hideVideoControls() {
+        if (isSelectOpen) return;
+        
+        const c = document.querySelector(".video-controls");
+        if (!c) return;
+        
+        c.style.opacity = "0";
+        isControlsVisible = false;
+      }
+
+      function setupSelectDropdown() {
+        const select = document.getElementById("resolutionSelect");
+        if (!select) return;
+        
+        isSelectOpen = false;
+        
+        select.addEventListener('focus', () => {
+            isSelectOpen = true;
+            clearTimeout(controlsTimeout);
+            showVideoControls();
+        });
+        
+        select.addEventListener('blur', () => {
+            isSelectOpen = false;
+            showVideoControls();
+        });
+        
+        select.addEventListener('touchstart', () => {
+            isSelectOpen = true;
+            clearTimeout(controlsTimeout);
+        });
+        
+        select.addEventListener('touchend', () => {
+            setTimeout(() => {
+                if (document.activeElement !== select) {
+                    isSelectOpen = false;
+                    showVideoControls();
+                }
+            }, 300);
+        });
+        
+        select.addEventListener('change', () => {
+            setTimeout(() => {
+                isSelectOpen = false;
+                if (document.activeElement !== select) {
+                    showVideoControls();
+                }
+            }, 200);
+        });
+      }
+
+      function setupVideoControls() {
+        if ('ontouchstart' in window || navigator.maxTouchPoints) {
+            videoContainer.addEventListener('touchstart', showVideoControls);
+            videoContainer.addEventListener('touchmove', showVideoControls);
+            videoContainer.addEventListener('click', showVideoControls);
+        } else {
+            videoContainer.addEventListener('mousemove', showVideoControls);
+            videoContainer.addEventListener('click', showVideoControls);
+        }
+        
+        videoPlayer.addEventListener('pause', () => {
+            showVideoControls();
+            clearTimeout(controlsTimeout);
+        });
+        
+        videoPlayer.addEventListener('play', () => {
+            if (isSelectOpen) return;
+            
+            controlsTimeout = setTimeout(() => {
+                if (!videoPlayer.paused && !isSelectOpen) {
+                    hideVideoControls();
+                }
+            }, 2500);
+        });
+        
+        videoPlayer.addEventListener('ended', () => {
+            showVideoControls();
+            clearTimeout(controlsTimeout);
+        });
+      }
+
+      function showControlsLite() {
+        const c = document.querySelector(".video-controls");
+        if (!c) return;
+        
+        c.style.opacity = "1";
+        clearTimeout(liteControlsTimeout);
+        
+        if (!videoPlayer.paused && !videoPlayer.ended) {
+            liteControlsTimeout = setTimeout(() => {
+                if (!videoPlayer.paused) {
+                    c.style.opacity = "0";
+                }
+            }, 4000);
+        }
+      }
+
+      function setupLiteControls() {
+        const select = document.getElementById("resolutionSelect");
+        const c = document.querySelector(".video-controls");
+        if (c) c.style.opacity = "1";
+        
+        if ('ontouchstart' in window) {
+            videoContainer.addEventListener('touchstart', (e) => {
+                if (e.target === select || select.contains(e.target)) {
+                    clearTimeout(liteControlsTimeout);
+                    return;
+                }
+                showControlsLite();
+            });
+            
+            if (select) {
+                select.addEventListener('touchstart', () => {
+                    clearTimeout(liteControlsTimeout);
+                    const c = document.querySelector(".video-controls");
+                    if (c) c.style.opacity = "1";
+                });
+                
+                select.addEventListener('change', () => {
+                    setTimeout(() => {
+                        if (!videoPlayer.paused) {
+                            liteControlsTimeout = setTimeout(() => {
+                                const c = document.querySelector(".video-controls");
+                                if (c && !videoPlayer.paused) c.style.opacity = "0";
+                            }, 4000);
+                        }
+                    }, 1000);
+                });
+            }
+        } else {
+            videoContainer.addEventListener('click', showControlsLite);
+        }
+        
+        videoPlayer.addEventListener('pause', () => {
+            const c = document.querySelector(".video-controls");
+            if (c) c.style.opacity = "1";
+            clearTimeout(liteControlsTimeout);
+        });
+        
+        videoPlayer.addEventListener('play', () => {
+            liteControlsTimeout = setTimeout(() => {
+                const c = document.querySelector(".video-controls");
+                if (c && !videoPlayer.paused) c.style.opacity = "0";
+            }, 4000);
+        });
+      }
+
+      const videoObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'style') {
+                if (videoContainer.style.display === 'block') {
+                    if (!IS_LITE) {
+                        setupVideoControls();
+                        setupSelectDropdown();
+                        showVideoControls();
+                    }
+                } else {
+                    isSelectOpen = false;
+                    clearTimeout(controlsTimeout);
+                    clearTimeout(liteControlsTimeout);
+                }
+            }
+        });
+      });
+
+      videoObserver.observe(videoContainer, { attributes: true });
 
       function thumbProxy(url) {
         if (!url) return "";
