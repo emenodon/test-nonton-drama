@@ -9,7 +9,7 @@
       const IS_LITE =
         (navigator.deviceMemory && navigator.deviceMemory <= 3) ||
         /Android [5-8]/i.test(navigator.userAgent) ||
-        window.innerWidth <= 700;
+        window.innerWidth <= 360;
 
       if (IS_LITE) {
         document.documentElement.classList.add("lite");
