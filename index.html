@@ -537,7 +537,6 @@
           display: flex;
           height: 100px;
           aspect-ratio: auto;
-          width: 100%;
         }
 
         .lite .card-img {
@@ -635,11 +634,11 @@
     </div>
 
     <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="loadLatest()">
+        <button class="nav-btn active" onclick="navigateHome()">
             <i class="fas fa-home"></i>
             Home
         </button>
-        <button class="nav-btn" onclick="goBack()">
+        <button class="nav-btn" onclick="navigateBack()">
             <i class="fas fa-arrow-left"></i>
             Kembali
         </button>
@@ -660,6 +659,12 @@
           totalResults: []
       };
 
+      let historyStack = [];
+      let currentPage = {
+          type: 'home',
+          data: null
+      };
+
       const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
 
       const PROXY_LIST = [
@@ -677,7 +682,7 @@
       const searchInput = document.getElementById("searchInput");
 
       document.addEventListener("DOMContentLoaded", () => {
-        loadLatest();
+        navigateHome();
         searchInput.addEventListener("keypress", e => {
           if (e.key === "Enter") searchDrama();
         });
@@ -703,6 +708,119 @@
         
         if (scrollTop + clientHeight >= scrollHeight - 300) {
           loadMoreSearch();
+        }
+      }
+
+      function addToHistory(page) {
+        historyStack.push({...currentPage});
+        currentPage = page;
+      }
+
+      function navigateBack() {
+        if (videoContainer.style.display === "block") {
+          videoContainer.style.display = "none";
+          videoPlayer.pause();
+          videoPlayer.src = "";
+          currentTimeCache = 0;
+          return;
+        }
+        
+        if (historyStack.length === 0) {
+          navigateHome();
+          return;
+        }
+        
+        const prevPage = historyStack.pop();
+        currentPage = prevPage;
+        
+        switch(prevPage.type) {
+          case 'home':
+            loadLatest();
+            break;
+          case 'trending':
+            loadTrending();
+            break;
+          case 'search':
+            restoreSearch(prevPage.data);
+            break;
+          case 'detail':
+            if (prevPage.data && prevPage.data.prevPage) {
+                const pageBeforeDetail = prevPage.data.prevPage;
+                currentPage = pageBeforeDetail;
+                
+                switch(pageBeforeDetail.type) {
+                    case 'home':
+                        loadLatest();
+                        break;
+                    case 'trending':
+                        loadTrending();
+                        break;
+                    case 'search':
+                        restoreSearch(pageBeforeDetail.data);
+                        break;
+                    default:
+                        navigateHome();
+                }
+            } else {
+                navigateHome();
+            }
+            break;
+        }
+      }
+
+      function navigateHome() {
+        historyStack = [];
+        currentPage = { type: 'home', data: null };
+        loadLatest();
+      }
+
+      function restoreSearch(data) {
+        if (data && data.query) {
+            searchInput.value = data.query;
+            performSearchRestore(data.query);
+        } else {
+            navigateHome();
+        }
+      }
+
+      async function performSearchRestore(query) {
+        searchState = {
+            query: query,
+            offset: 0,
+            limit: 10,
+            hasMore: false,
+            loading: false,
+            totalResults: []
+        };
+
+        showSearchLoading();
+
+        try {
+          const json = await smartFetch("search", { 
+            query: query,
+            limit: searchState.limit,
+            offset: searchState.offset
+          });
+
+          const data = json?.data;
+          const groups = data?.search_data || [];
+
+          const books = groups.flatMap(g => g.books || []);
+
+          if (!books.length) {
+            showError(`Tidak ada drama ditemukan untuk "${query}"`);
+            return;
+          }
+
+          searchState.totalResults = books;
+          searchState.hasMore = data?.has_more || false;
+          searchState.offset = data?.next_offset || searchState.offset + searchState.limit;
+
+          renderSearchResults(books, true);
+          setActiveCategory('none');
+        } catch (e) {
+          console.error(e);
+          showError("Pencarian gagal");
         }
       }
 
@@ -744,7 +862,7 @@
         return data;
       }
 
-      async function loadLatest() {
+      async function loadLatest(data = null) {
         showLoading();
         try {
           const json = await smartFetch("latest");
@@ -755,7 +873,8 @@
         }
       }
 
-      async function loadTrending() {
+      async function loadTrending(data = null) {
+        addToHistory({ type: 'trending', data: data });
         showLoading();
         try {
           const json = await smartFetch("trending");
@@ -769,6 +888,13 @@
       async function searchDrama() {
         const q = searchInput.value.trim();
         if (!q) return;
+
+        addToHistory({
+          type: 'search',
+          data: {
+            query: q
+          }
+        });
 
         searchState = {
             query: q,
@@ -795,6 +921,7 @@
 
           if (!books.length) {
             showError("Drama tidak ditemukan");
+            historyStack.pop();
             return;
           }
 
@@ -803,9 +930,11 @@
           searchState.offset = data?.next_offset || searchState.offset + searchState.limit;
 
           renderSearchResults(books, true);
+          setActiveCategory('none');
         } catch (e) {
           console.error(e);
           showError("Pencarian gagal");
+          historyStack.pop();
         }
       }
 
@@ -855,7 +984,22 @@
         if (isInitial) {
           content.innerHTML = `
             <div class="grid" id="searchGrid">
-              ${books.map(b => createCardHTML(b)).join("")}
+              ${books.map(b => `
+                <div class="card" data-book-id="${b.book_id}">
+                  ${renderBadges(b)}
+                  <div class="card-img">
+                    <img src="${thumbProxy(b.thumb_url)}"
+                         loading="lazy"
+                         decoding="async">
+                  </div>
+                  <div class="card-info">
+                    <div class="card-title">
+                      ${escapeHTML(b.search_high_light?.title?.rich_text || b.book_name)}
+                    </div>
+                    <div class="card-meta">${b.show_creation_status || ""}</div>
+                  </div>
+                </div>
+              `).join("")}
             </div>
             ${searchState.hasMore ? `
               <div class="load-more">
@@ -865,6 +1009,8 @@
               </div>
             ` : ''}
           `;
+          
+          setTimeout(() => setupSearchCardListeners(), 100);
         } else {
           const grid = document.getElementById("searchGrid");
           if (!grid) return;
@@ -872,46 +1018,37 @@
           books.slice(-searchState.limit).forEach(b => {
             const card = document.createElement("div");
             card.className = "card";
-            card.onclick = () => loadDetail(b.book_id);
-            card.innerHTML = createCardHTML(b);
+            card.setAttribute('data-book-id', b.book_id);
+            card.innerHTML = `
+              ${renderBadges(b)}
+              <div class="card-img">
+                <img src="${thumbProxy(b.thumb_url)}"
+                     loading="lazy"
+                     decoding="async">
+              </div>
+              <div class="card-info">
+                <div class="card-title">
+                  ${escapeHTML(b.search_high_light?.title?.rich_text || b.book_name)}
+                </div>
+                <div class="card-meta">${b.show_creation_status || ""}</div>
+              </div>
+            `;
+            card.addEventListener('click', () => loadDetail(b.book_id));
             grid.appendChild(card);
           });
           
           updateLoadMoreButton();
         }
-        
-        if (IS_LITE && isInitial) {
-          setTimeout(() => {
-            const grid = document.getElementById("searchGrid");
-            if (grid) {
-              Array.from(grid.children).forEach(card => {
-                card.addEventListener('click', (e) => {
-                  const bookId = card.getAttribute('data-book-id');
-                  if (bookId) loadDetail(bookId);
-                });
-              });
-            }
-          }, 100);
-        }
       }
 
-      function createCardHTML(b) {
-        return `
-          <div class="card" data-book-id="${b.book_id}">
-            ${renderBadges(b)}
-            <div class="card-img">
-              <img src="${thumbProxy(b.thumb_url)}"
-                   loading="lazy"
-                   decoding="async">
-            </div>
-            <div class="card-info">
-              <div class="card-title">
-                ${escapeHTML(b.search_high_light?.title?.rich_text || b.book_name)}
-              </div>
-              <div class="card-meta">${b.show_creation_status || ""}</div>
-            </div>
-          </div>
-        `;
+      function setupSearchCardListeners() {
+        const cards = document.querySelectorAll('#searchGrid .card');
+        cards.forEach(card => {
+          const bookId = card.getAttribute('data-book-id');
+          if (bookId) {
+            card.addEventListener('click', () => loadDetail(bookId));
+          }
+        });
       }
 
       function updateLoadMoreButton() {
@@ -943,9 +1080,9 @@
         if (IS_LITE) return renderGridLite(books);
 
         content.innerHTML = `
-          <div class="grid">
+          <div class="grid" id="mainGrid">
             ${books.map(b => `
-              <div class="card" onclick="loadDetail('${b.book_id}')">
+              <div class="card" data-book-id="${b.book_id}">
                 ${renderBadges(b)}
                 <div class="card-img">
                   <img src="${thumbProxy(b.thumb_url)}"
@@ -962,6 +1099,18 @@
             `).join("")}
           </div>
         `;
+        
+        setTimeout(() => setupGridCardListeners(), 100);
+      }
+
+      function setupGridCardListeners() {
+        const cards = document.querySelectorAll('#mainGrid .card');
+        cards.forEach(card => {
+          const bookId = card.getAttribute('data-book-id');
+          if (bookId) {
+            card.addEventListener('click', () => loadDetail(bookId));
+          }
+        });
       }
 
       function renderGridLite(books) {
@@ -977,8 +1126,7 @@
           slice.forEach(b => {
             const card = document.createElement("div");
             card.className = "card";
-            card.onclick = () => loadDetail(b.book_id);
-
+            card.setAttribute('data-book-id', b.book_id);
             card.innerHTML = `
               ${renderBadges(b)}
               <div class="card-img">
@@ -991,7 +1139,7 @@
                 <div class="card-meta">${b.show_creation_status || ""}</div>
               </div>
             `;
-
+            card.addEventListener('click', () => loadDetail(b.book_id));
             grid.appendChild(card);
           });
 
@@ -1004,7 +1152,17 @@
         renderChunk();
       }
 
-      async function loadDetail(bookId) {
+      async function loadDetail(bookId, addHistory = true) {
+        if (addHistory) {
+          addToHistory({
+            type: 'detail',
+            data: {
+              bookId: bookId,
+              prevPage: {...currentPage}
+            }
+          });
+        }
+        
         showLoading();
         try {
           const json = await smartFetch(`detail/${bookId}`);
@@ -1025,6 +1183,9 @@
           `;
         } catch {
           showError("Detail gagal dimuat");
+          if (addHistory) {
+            historyStack.pop();
+          }
         }
       }
 
@@ -1171,7 +1332,9 @@
           videoPlayer.pause();
           videoPlayer.src = "";
           currentTimeCache = 0;
-        } else loadLatest();
+        } else {
+          navigateBack();
+        }
       }
 
       function focusSearch() {
@@ -1182,6 +1345,9 @@
         document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
         if (type === "latest") document.querySelectorAll(".category-btn")[0]?.classList.add("active");
         if (type === "trending") document.querySelectorAll(".category-btn")[1]?.classList.add("active");
+        if (type === "none") {
+          document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
+        }
       }
 
       function showLoading() {
@@ -1477,6 +1643,5 @@
       document.addEventListener("touchmove", () => {}, { passive: true });
     </script>
     <div class="global-watermark">© emenodon</div>
-
 </body>
 </html>
