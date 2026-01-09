@@ -245,25 +245,94 @@
             border-radius: var(--radius);
             padding: 14px 16px;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.15s;
+            border-left: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+            display: flex;
         }
 
         .episode-item:active {
             background: var(--surface);
+            transform: scale(0.98);
         }
 
-        .episode-title {
-            font-weight: 500;
+        .episode-item.playing {
+            border-left-color: var(--primary);
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
+        }
+
+        .episode-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .episode-number {
+            font-weight: 700;
+            color: white;
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .episode-number .ep-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .episode-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .episode-duration {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .episode-duration i {
+            font-size: 0.7rem;
         }
 
         .episode-play {
             color: var(--primary);
-            font-size: 1.2rem;
+            font-size: 1.5rem;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.1);
+            transition: transform 0.2s, background 0.2s;
+            align-self: center;
+        }
+
+        .episode-item.playing .episode-play {
+            background: var(--primary);
+            color: white;
+        }
+
+        .episode-play:active {
+            transform: scale(0.9);
         }
 
         .video-container {
@@ -312,6 +381,34 @@
             justify-content: center;
             cursor: pointer;
             backdrop-filter: blur(10px);
+        }
+
+        .episode-display {
+            position: absolute;
+            left: 70px;
+            right: 100px;
+            pointer-events: none;
+            z-index: 1;
+            max-width: 70%;
+            align-self: end;
+        }
+
+        .episode-display-content {
+            color: white;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            backdrop-filter: blur(8px);
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .episode-display-content strong {
+            color: #facc15;
+            margin-right: 6px;
         }
 
         .loading {
@@ -486,8 +583,24 @@
         @media (max-width: 768px) {
           .badge,
           .back-btn,
-          .resolution-select {
+          .resolution-select,
+          .episode-display-content {
             backdrop-filter: none;
+          }
+          
+          .episode-display {
+            left: 70px;
+            right: 90px;
+            max-width: 65%;
+          }
+          
+          .episode-display-content {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+          }
+          
+          .episode-meta {
+            font-size: 0.75rem;
           }
         }
 
@@ -499,6 +612,27 @@
             
             .card-title {
                 font-size: 0.85rem;
+            }
+            
+            .episode-display {
+                left: 60px;
+                right: 80px;
+                max-width: 60%;
+            }
+            
+            .episode-display-content {
+                padding: 5px 8px;
+                font-size: 0.75rem;
+            }
+            
+            .episode-item {
+                padding: 12px 14px;
+            }
+            
+            .episode-play {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
             }
         }
 
@@ -523,8 +657,13 @@
 
         .lite .badge,
         .lite .back-btn,
-        .lite .resolution-select {
+        .lite .resolution-select,
+        .lite .episode-display-content {
           backdrop-filter: none !important;
+        }
+
+        .lite .episode-display-content {
+            background: rgba(0, 0, 0, 0.8);
         }
 
         .lite .grid {
@@ -568,19 +707,35 @@
 
         .lite .video-controls {
           opacity: 1 !important;
+          transition: none !important;
         }
 
         .lite .global-watermark {
           display: none;
         }
         
-        .lite .video-controls {
-          transition: none !important;
-        }
-        
         .lite .back-btn,
         .lite .resolution-select {
           background: rgba(0,0,0,0.7) !important;
+        }
+
+        .lite .episode-item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 10px 12px;
+        }
+
+        .lite .episode-play {
+            background: transparent;
+            color: var(--primary);
+            width: 32px;
+            height: 32px;
+            align-items: center;
+        }
+
+        .lite .episode-item.playing .episode-play {
+            background: var(--primary);
         }
     </style>
 </head>
@@ -1170,17 +1325,54 @@
 
           currentEpisodes = data.video_list;
 
+          function formatDuration(seconds) {
+            if (!seconds) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+          }
+
+          function formatNumber(num) {
+            if (!num) return "0";
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + "Jt";
+            if (num >= 1000) return (num / 1000).toFixed(1) + "rb";
+            return num.toString();
+          }
+
+          const sortedEpisodes = [...currentEpisodes].sort((a, b) => {
+            return (parseInt(a.vid_index) || 0) - (parseInt(b.vid_index) || 0);
+          });
+
           content.innerHTML = `
             <h2 class="detail-title">${data.series_title}</h2>
             <div class="episode-list">
-              ${data.video_list.map((v, i) => `
-                <div class="episode-item" onclick="playEpisode(${i})">
-                  <div class="episode-title">Episode ${v.vid_index}</div>
-                  <div class="episode-play"><i class="fas fa-play"></i></div>
-                </div>
-              `).join("")}
+                ${sortedEpisodes.map((v, i) => {
+                    const episodeNum = v.vid_index || (i + 1);
+                    const duration = v.duration ? formatDuration(v.duration) : "N/A";
+                    
+                    return `
+                    <div class="episode-item" data-episode-index="${i}" onclick="playEpisode(${i})">
+                        <div class="episode-info">
+                            <div class="episode-number">
+                                <span>Episode ${episodeNum}</span>
+                                ${v.is_new === "1" ? '<span class="ep-badge">BARU</span>' : ''}
+                            </div>
+                            <div class="episode-meta">
+                                <span class="episode-duration">
+                                    <i class="far fa-clock"></i> ${duration}
+                                </span>
+                                ${v.upload_date ? `<span><i class="far fa-calendar"></i> ${v.upload_date}</span>` : ''}
+                                ${v.views ? `<span><i class="far fa-eye"></i> ${formatNumber(v.views)}x</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="episode-play">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    `;
+                }).join("")}
             </div>
-          `;
+        `;
         } catch {
           showError("Detail gagal dimuat");
           if (addHistory) {
@@ -1328,12 +1520,21 @@
 
       function goBack() {
         if (videoContainer.style.display === "block") {
-          videoContainer.style.display = "none";
-          videoPlayer.pause();
-          videoPlayer.src = "";
-          currentTimeCache = 0;
+            document.querySelectorAll('.episode-item').forEach(item => {
+                item.classList.remove('playing');
+            });
+            
+            videoContainer.style.display = "none";
+            videoPlayer.pause();
+            videoPlayer.src = "";
+            currentTimeCache = 0;
+            
+            const episodeDisplay = document.querySelector('.episode-display');
+            if (episodeDisplay) {
+                episodeDisplay.remove();
+            }
         } else {
-          navigateBack();
+            navigateBack();
         }
       }
 
@@ -1370,28 +1571,74 @@
 
       function playEpisode(index) {
         if (!currentEpisodes[index]) return;
+        
+        document.querySelectorAll('.episode-item').forEach(item => {
+            item.classList.remove('playing');
+        });
+        
+        const episodeItem = document.querySelector(`.episode-item[data-episode-index="${index}"]`);
+        if (episodeItem) {
+            episodeItem.classList.add('playing');
+            episodeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
         currentTimeCache = 0;
         currentEpisodeIndex = index;
+        
+        updateVideoControlsEpisodeInfo(index);
+        
         playVideo(currentEpisodes[index].vid);
       }
       
       function nextEpisode() {
         if (currentEpisodeIndex < currentEpisodes.length - 1) {
-          currentTimeCache = 0;
           playEpisode(currentEpisodeIndex + 1);
+        } else {
+          alert("Ini adalah episode terakhir");
         }
       }
 
       function prevEpisode() {
         if (currentEpisodeIndex > 0) {
-          currentTimeCache = 0;
           playEpisode(currentEpisodeIndex - 1);
+        } else {
+          alert("Ini adalah episode pertama");
         }
       }
 
+      function updateVideoControlsEpisodeInfo(index) {
+        const episode = currentEpisodes[index];
+        if (!episode) return;
+        
+        const episodeNum = episode.vid_index || (index + 1);
+        const episodeTitle = episode.video_title || `Episode ${episodeNum}`;
+        
+        let episodeDisplay = document.querySelector('.episode-display');
+        if (!episodeDisplay) {
+            episodeDisplay = document.createElement('div');
+            episodeDisplay.className = 'episode-display';
+            document.querySelector('.video-controls').appendChild(episodeDisplay);
+        }
+        
+        episodeDisplay.innerHTML = `
+            <div class="episode-display-content">
+                ${escapeHTML(episodeTitle)}
+            </div>
+        `;
+      }
+
       videoPlayer.addEventListener("ended", () => {
-        nextEpisode();
+        setTimeout(() => {
+            nextEpisode();
+        }, 1000);
       });
+
+      videoPlayer.addEventListener("playing", () => {
+        if (currentEpisodeIndex >= 0) {
+            updateVideoControlsEpisodeInfo(currentEpisodeIndex);
+        }
+      });
+
       videoPlayer.setAttribute("playsinline", true);
       videoPlayer.setAttribute("webkit-playsinline", true);
       
@@ -1598,11 +1845,11 @@
         const badges = [];
 
         if (b.is_hot === "1") badges.push(`<span class="badge hot">🔥 HOT</span>`);
-        if (b.is_new_book === "1") badges.push(`<span class="badge new">🆕 NEW</span>`);
-        if (b.is_exclusive === "1") badges.push(`<span class="badge exclusive">⭐ EXCLUSIVE</span>`);
-        if (b.is_dubbed === "1") badges.push(`<span class="badge dub">🎧 DUB</span>`);
-        if (b.is_native === "1") badges.push(`<span class="badge original">🌱 ORIGINAL</span>`);
-        if (b.in_bookshelf === "1") badges.push(`<span class="badge saved">✔️ SAVED</span>`);
+        if (b.is_new_book === "1") badges.push(`<span class="badge new">NEW</span>`);
+        if (b.is_exclusive === "1") badges.push(`<span class="badge exclusive">EXCLUSIVE</span>`);
+        if (b.is_dubbed === "1") badges.push(`<span class="badge dub">DUB</span>`);
+        if (b.is_native === "1") badges.push(`<span class="badge original">ORIGINAL</span>`);
+        if (b.in_bookshelf === "1") badges.push(`<span class="badge saved">SAVED</span>`);
 
         if (!badges.length) return "";
         return `<div class="badges">${badges.join("")}</div>`;
@@ -1621,6 +1868,8 @@
       function switchResolution(res) {
         if (!currentVideoSources[res]) return;
 
+        updateVideoControlsEpisodeInfo(currentEpisodeIndex);
+        
         currentTimeCache = videoPlayer.currentTime;
         videoPlayer.src = currentVideoSources[res];
         videoPlayer.load();
