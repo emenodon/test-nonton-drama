@@ -390,12 +390,13 @@
             pointer-events: none;
             z-index: 1;
             max-width: 70%;
-            align-self: end;
+            display: flex;
+            align-items: center;
         }
 
         .episode-display-content {
             color: white;
-            padding: 8px 14px;
+            padding: 6px 10px;
             border-radius: 10px;
             font-size: 0.85rem;
             backdrop-filter: blur(8px);
@@ -404,11 +405,6 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-        }
-
-        .episode-display-content strong {
-            color: #facc15;
-            margin-right: 6px;
         }
 
         .loading {
