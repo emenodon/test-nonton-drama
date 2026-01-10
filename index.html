@@ -172,11 +172,6 @@
             width: 100%;
             height: 70%;
             background: linear-gradient(45deg, #4f46e5, #7c3aed);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: rgba(255, 255, 255, 0.9);
             background-size: cover;
             background-position: center;
             position: relative;
@@ -184,15 +179,10 @@
         }
 
         .card-img img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-        }
-
-        .card,
-        .episode-item {
-          contain: layout paint;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .card-info {
@@ -214,30 +204,13 @@
         }
 
         .card-title em {
-          color: #facc15;
-          font-style: normal;
+            color: #facc15;
+            font-style: normal;
         }
 
         .card-meta {
             font-size: 0.8rem;
             color: var(--text-secondary);
-        }
-
-        .card,
-        .card-img,
-        .episode-item {
-          will-change: transform;
-          transform: translateZ(0);
-        }
-
-        body.scrolling .card,
-        body.scrolling .search-box,
-        body.scrolling .episode-item {
-          box-shadow: none !important;
-        }
-
-        .episode-list {
-            padding: 0;
         }
 
         .episode-item {
@@ -248,9 +221,8 @@
             cursor: pointer;
             transition: background 0.2s, transform 0.15s;
             border-left: 4px solid transparent;
-            position: relative;
-            overflow: hidden;
             display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .episode-item:active {
@@ -498,35 +470,35 @@
         }
 
         .resolution-select {
-          pointer-events: auto;
-          background: rgba(0,0,0,0.55);
-          color: white;
-          border: none;
-          padding: 6px 10px;
-          border-radius: 8px;
-          font-size: 0.8rem;
-          outline: none;
-          backdrop-filter: blur(8px);
+            pointer-events: auto;
+            background: rgba(0,0,0,0.55);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            outline: none;
+            backdrop-filter: blur(8px);
         }
 
         .badges {
-          position: absolute;
-          top: 8px;
-          left: 8px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-          z-index: 5;
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            z-index: 5;
         }
 
         .badge {
-          font-size: 0.65rem;
-          font-weight: 700;
-          padding: 4px 8px;
-          border-radius: 999px;
-          color: white;
-          backdrop-filter: blur(6px);
-          box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 999px;
+            color: white;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
         }
 
         .badge.hot { background: #ef4444; }
@@ -537,11 +509,11 @@
         .badge.saved { background: #64748b; }
 
         .app-title {
-          font-size: 1.6rem;
-          font-weight: 800;
-          display: flex;
-          align-items: center;
-          gap: 10px;
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .load-more {
@@ -570,34 +542,361 @@
             cursor: not-allowed;
         }
 
-        .infinite-loading {
-            padding: 20px;
-            text-align: center;
+        .detail-container {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .detail-thumbnail {
+            flex-shrink: 0;
+            width: 120px;
+        }
+
+        .detail-thumbnail img {
+            width: 120px;
+            height: 180px;
+            border-radius: 12px;
+            object-fit: cover;
+            display: block;
+            box-shadow: var(--shadow);
+            background: var(--card-bg);
+        }
+
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-episode-count {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .description-container {
+            margin-top: 12px;
+        }
+
+        .description-content {
+            font-size: 0.9rem;
+            line-height: 1.5;
             color: var(--text-secondary);
         }
 
-        @media (max-width: 768px) {
-          .badge,
-          .back-btn,
-          .resolution-select,
-          .episode-display-content {
-            backdrop-filter: none;
-          }
-          
-          .episode-display {
-            left: 70px;
-            right: 90px;
-            max-width: 65%;
-          }
-          
-          .episode-display-content {
-            padding: 6px 10px;
+        .description-content.truncated {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.85rem;
+            padding: 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .episodes-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .episode-list-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .lite * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .lite .card,
+        .lite .search-box,
+        .lite .episode-item,
+        .lite .header,
+        .lite .bottom-nav {
+            box-shadow: none !important;
+        }
+
+        .lite .badge,
+        .lite .back-btn,
+        .lite .resolution-select,
+        .lite .episode-display-content {
+            backdrop-filter: none !important;
+        }
+
+        .lite .episode-display-content {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .lite .grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lite .card {
+            display: flex;
+            height: 100px;
+            aspect-ratio: auto;
+        }
+
+        .lite .card-img {
+            width: 70px;
+            height: 100%;
+            flex-shrink: 0;
+        }
+
+        .lite .card-info {
+            height: auto;
+            padding: 8px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .lite .badges {
+            top: 0px;
+            left: auto;
+            right: 0px;
+            position: absolute;
+        }
+
+        .lite .card-title {
+            font-size: 0.9rem;
+        }
+
+        .lite .video-controls {
+            opacity: 1 !important;
+        }
+
+        .lite .global-watermark {
+            display: none;
+        }
+        
+        .lite .back-btn,
+        .lite .resolution-select {
+            background: rgba(0,0,0,0.7) !important;
+        }
+
+        .lite .episode-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+        }
+
+        .lite .episode-play {
+            background: transparent;
+            color: var(--primary);
+            width: 32px;
+            height: 32px;
+            align-items: center;
+        }
+
+        .lite .episode-item.playing .episode-play {
+            background: var(--primary);
+        }
+
+        .lite .detail-container-lite {
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lite .detail-header-lite {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            margin-bottom: 0;
+            align-self: center;
+        }
+
+        .lite .detail-thumbnail-lite {
+            width: 80px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--surface);
+            position: relative;
+        }
+
+        .lite .detail-thumbnail-lite img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .lite .detail-info-lite {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lite .detail-info-lite .detail-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: var(--text);
+        }
+
+        .lite .detail-info-lite .detail-episode-count {
             font-size: 0.8rem;
-          }
-          
-          .episode-meta {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .lite .description-lite {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .lite .description-content-lite {
+            max-height: 4.2em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .lite .episodes-card-lite {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .lite .episode-list-lite {
+            padding: 0 12px;
+        }
+
+        .lite .episode-item-lite {
+            display: flex;
+            align-items: center;
+            padding: 12px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+        }
+
+        .lite .episode-item-lite:last-child {
+            border-bottom: none;
+        }
+
+        .lite .episode-item-lite:active {
+            background: var(--surface);
+            transform: scale(0.98);
+        }
+
+        .lite .episode-info-lite {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lite .episode-number-lite {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lite .episode-title-lite {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .lite .episode-play-lite {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .lite .episode-item-lite.playing .episode-play-lite {
+            background: var(--primary);
+            color: white;
+        }
+
+        .lite .episode-meta-lite {
+            display: flex;
+            gap: 10px;
             font-size: 0.75rem;
-          }
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .lite .episode-duration-lite {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .lite .ep-badge-lite {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .badge,
+            .back-btn,
+            .resolution-select,
+            .episode-display-content {
+                backdrop-filter: none;
+            }
+            
+            .episode-display {
+                left: 70px;
+                right: 90px;
+                max-width: 65%;
+            }
+            
+            .episode-display-content {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .episode-meta {
+                font-size: 0.75rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -630,108 +929,49 @@
                 height: 40px;
                 font-size: 1.2rem;
             }
+            
+            .detail-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .detail-thumbnail {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+            
+            .detail-thumbnail img {
+                width: 140px;
+                height: 210px;
+            }
         }
 
         @media (max-width: 360px) {
             .grid {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
-        }
-
-        .lite * {
-          animation: none !important;
-          transition: none !important;
-        }
-
-        .lite .card,
-        .lite .search-box,
-        .lite .episode-item,
-        .lite .header,
-        .lite .bottom-nav {
-          box-shadow: none !important;
-        }
-
-        .lite .badge,
-        .lite .back-btn,
-        .lite .resolution-select,
-        .lite .episode-display-content {
-          backdrop-filter: none !important;
-        }
-
-        .lite .episode-display-content {
-            background: rgba(0, 0, 0, 0.8);
-        }
-
-        .lite .grid {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .lite .card {
-          display: flex;
-          height: 100px;
-          aspect-ratio: auto;
-        }
-
-        .lite .card-img {
-          width: 70px;
-          height: 100%;
-          flex-shrink: 0;
-        }
-
-        .lite .card-info {
-          height: auto;
-          padding: 8px;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-
-        .lite .badges {
-          top: 0px;
-          left: auto;
-          right: 0px;
-          display: flex;
-          position: absolute;
-        }
-
-        .lite .card-title {
-          font-size: 0.9rem;
-        }
-
-        .lite .video-controls {
-          opacity: 1 !important;
-          transition: none !important;
-        }
-
-        .lite .global-watermark {
-          display: none;
-        }
-        
-        .lite .back-btn,
-        .lite .resolution-select {
-          background: rgba(0,0,0,0.7) !important;
-        }
-
-        .lite .episode-item {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            padding: 10px 12px;
-        }
-
-        .lite .episode-play {
-            background: transparent;
-            color: var(--primary);
-            width: 32px;
-            height: 32px;
-            align-items: center;
-        }
-
-        .lite .episode-item.playing .episode-play {
-            background: var(--primary);
+            
+            .lite .detail-header-lite {
+                padding: 12px;
+            }
+            
+            .lite .detail-thumbnail-lite {
+                width: 70px;
+                height: 105px;
+            }
+            
+            .lite .detail-info-lite .detail-title {
+                font-size: 0.95rem;
+            }
+            
+            .lite .episode-item-lite {
+                padding: 10px 4px;
+            }
+            
+            .lite .episode-number-lite {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -1320,6 +1560,10 @@
           const data = json.data.video_data;
 
           currentEpisodes = data.video_list;
+          
+          const seriesCover = data.series_cover || data.thumb_url || "";
+          const seriesIntro = data.series_intro || "Tidak ada deskripsi tersedia.";
+          const episodeRightText = data.episode_right_text || `Total ${currentEpisodes.length} episode`;
 
           function formatDuration(seconds) {
             if (!seconds) return "0:00";
@@ -1339,36 +1583,147 @@
             return (parseInt(a.vid_index) || 0) - (parseInt(b.vid_index) || 0);
           });
 
-          content.innerHTML = `
-            <h2 class="detail-title">${data.series_title}</h2>
-            <div class="episode-list">
-                ${sortedEpisodes.map((v, i) => {
+          if (IS_LITE) {
+            content.innerHTML = `
+                <div class="detail-container-lite">
+                    <div class="detail-header-lite">
+                        <div class="detail-thumbnail-lite">
+                            <img src="${thumbProxy(seriesCover)}" 
+                                 alt="${escapeHTML(data.series_title)}" 
+                                 loading="lazy"
+                                 decoding="async">
+                        </div>
+                    </div>
+                        <div class="detail-info-lite">
+                            <h2 class="detail-title">${escapeHTML(data.series_title)}</h2>
+                            <div class="detail-episode-count">${episodeRightText}</div>
+                        </div>
+                    <div class="description-lite">
+                        <div class="description-content-lite">
+                            ${escapeHTML(seriesIntro)}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="episodes-card-lite">
+                    <div class="episode-list-lite">
+                        ${sortedEpisodes.map((v, i) => {
+                            const episodeNum = v.vid_index || (i + 1);
+                            const duration = v.duration ? formatDuration(v.duration) : "";
+                            
+                            return `
+                            <div class="episode-item-lite" data-episode-index="${i}" onclick="playEpisode(${i})">
+                                <div class="episode-info-lite">
+                                    <div class="episode-number-lite">
+                                        <span>Episode ${episodeNum}</span>
+                                        ${v.is_new === "1" ? '<span class="ep-badge-lite">BARU</span>' : ''}
+                                    </div>
+                                    ${v.video_title ? `<div class="episode-title-lite">${escapeHTML(v.video_title)}</div>` : ''}
+                                    <div class="episode-meta-lite">
+                                        ${duration ? `<span class="episode-duration-lite"><i class="far fa-clock"></i> ${duration}</span>` : ''}
+                                        ${v.views ? `<span><i class="far fa-eye"></i> ${formatNumber(v.views)}x</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="episode-play-lite">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                            `;
+                        }).join("")}
+                    </div>
+                </div>
+            `;
+        } else {
+            content.innerHTML = `
+              <div class="detail-container">
+                <div class="detail-thumbnail">
+                  <img src="${thumbProxy(seriesCover)}" 
+                       alt="${escapeHTML(data.series_title)}" 
+                       loading="lazy"
+                       decoding="async">
+                </div>
+                <div class="detail-info">
+                  <h2 class="detail-title">${escapeHTML(data.series_title)}</h2>
+                  <div class="detail-episode-count">${episodeRightText}</div>
+                  <div class="description-container">
+                    <div class="description-content">${escapeHTML(seriesIntro)}</div>
+                    <button class="expand-btn">
+                      <span>Selengkapnya</span>
+                      <i class="fas fa-chevron-down"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="episodes-card">
+                <div class="episode-list-container">
+                  ${sortedEpisodes.map((v, i) => {
                     const episodeNum = v.vid_index || (i + 1);
                     const duration = v.duration ? formatDuration(v.duration) : "N/A";
                     
                     return `
                     <div class="episode-item" data-episode-index="${i}" onclick="playEpisode(${i})">
-                        <div class="episode-info">
-                            <div class="episode-number">
-                                <span>Episode ${episodeNum}</span>
-                                ${v.is_new === "1" ? '<span class="ep-badge">BARU</span>' : ''}
-                            </div>
-                            <div class="episode-meta">
-                                <span class="episode-duration">
-                                    <i class="far fa-clock"></i> ${duration}
-                                </span>
-                                ${v.upload_date ? `<span><i class="far fa-calendar"></i> ${v.upload_date}</span>` : ''}
-                                ${v.views ? `<span><i class="far fa-eye"></i> ${formatNumber(v.views)}x</span>` : ''}
-                            </div>
+                      <div class="episode-info">
+                        <div class="episode-number">
+                          <span>Episode ${episodeNum}</span>
+                          ${v.is_new === "1" ? '<span class="ep-badge">BARU</span>' : ''}
                         </div>
-                        <div class="episode-play">
-                            <i class="fas fa-play"></i>
+                        <div class="episode-meta">
+                          <span class="episode-duration">
+                            <i class="far fa-clock"></i> ${duration}
+                          </span>
+                          ${v.upload_date ? `<span><i class="far fa-calendar"></i> ${v.upload_date}</span>` : ''}
+                          ${v.views ? `<span><i class="far fa-eye"></i> ${formatNumber(v.views)}x</span>` : ''}
                         </div>
+                      </div>
+                      <div class="episode-play">
+                        <i class="fas fa-play"></i>
+                      </div>
                     </div>
                     `;
-                }).join("")}
-            </div>
-        `;
+                  }).join("")}
+                </div>
+              </div>
+            `;
+            
+            setTimeout(() => {
+              const descriptionContent = document.querySelector('.description-content');
+              const expandBtn = document.querySelector('.expand-btn');
+              
+              if (descriptionContent && expandBtn) {
+                const expandBtnText = expandBtn.querySelector('span');
+                const expandBtnIcon = expandBtn.querySelector('i');
+                
+                const lineHeight = 1.5;
+                const computedStyle = window.getComputedStyle(descriptionContent);
+                const fontSize = parseFloat(computedStyle.fontSize);
+                const maxHeight = lineHeight * fontSize * 3;
+                
+                if (descriptionContent.scrollHeight > maxHeight) {
+                  descriptionContent.classList.add('truncated');
+                  expandBtn.style.display = 'flex';
+                  
+                  let isExpanded = false;
+                  
+                  expandBtn.addEventListener('click', () => {
+                    if (!isExpanded) {
+                      descriptionContent.classList.remove('truncated');
+                      expandBtnText.textContent = 'Lebih Sedikit';
+                      expandBtnIcon.className = 'fas fa-chevron-up';
+                      isExpanded = true;
+                    } else {
+                      descriptionContent.classList.add('truncated');
+                      expandBtnText.textContent = 'Selengkapnya';
+                      expandBtnIcon.className = 'fas fa-chevron-down';
+                      isExpanded = false;
+                    }
+                  });
+                } else {
+                  expandBtn.style.display = 'none';
+                }
+              }
+            }, 100);
+          }
         } catch {
           showError("Detail gagal dimuat");
           if (addHistory) {
