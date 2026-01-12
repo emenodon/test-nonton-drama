@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <base href="/test-nonton-drama/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nonton Drama</title>
@@ -27,18 +28,37 @@
             -webkit-tap-highlight-color: transparent;
         }
     </style>
+
     <link rel="preconnect" href="https://melolo-api-azure.vercel.app">
     <link rel="preconnect" href="https://images.weserv.nl">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    
+    <link rel="manifest" href="manifest.json">
+    </head>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js');
+                // For GitHub Pages, use the repository name in the path
+                const swPath = window.location.pathname.includes('/test-nonton-drama/') 
+                    ? '/test-nonton-drama/sw.js' 
+                    : '/sw.js';
+                
+                navigator.serviceWorker.register(swPath, {
+                    scope: window.location.pathname.includes('/test-nonton-drama/') 
+                        ? '/test-nonton-drama/' 
+                        : '/'
+                }).then(registration => {
+                    console.log('ServiceWorker registered with scope:', registration.scope);
+                }).catch(error => {
+                    console.log('ServiceWorker registration failed:', error);
+                });
             });
         }
+        
+        // Set base path for API calls
+        window.BASE_PATH = window.location.pathname.includes('/test-nonton-drama/') 
+            ? '/test-nonton-drama/' 
+            : '/';
     </script>
-</head>
 <body>
     <div id="app" class="app">
         <header class="header" data-component="header">

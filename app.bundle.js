@@ -1,4 +1,4 @@
-// Drama Watch Lite - Bundled 2026-01-12T12:36:43.210Z
+// Drama Watch Lite - Bundled 2026-01-12T12:44:18.092Z
 
 
 // js/api.js
@@ -224,7 +224,6 @@ window.apiUtils = {
 };
 
 // js/components.js
-
 
 function escapeHTML(str) {
     if (!str) return '';
@@ -1747,7 +1746,6 @@ window.player = {
 };
 
 // js/ui.js
-
 
 function detectLiteMode() {
     const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory <= 3;
