@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nonton Drama</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.min.css">
-    <script src="app.min.js" defer></script>
+    <link rel="stylesheet" href="style.6bb85675.css">
+    <script src="app.ed866561.js" defer></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -28,11 +28,16 @@
         }
     </style>
 
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="ed866561">
     <link rel="preconnect" href="https://melolo-api-azure.vercel.app">
     <link rel="preconnect" href="https://images.weserv.nl">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    </head>
 <body>
     <div id="app" class="app">
         <header class="header" data-component="header">
@@ -117,5 +122,31 @@
             </div>
         </div>
     </template>
-</body>
+
+    <script>
+        // Clear old service worker caches
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+            
+            // Clear caches
+            caches.keys().then(function(names) {
+                for(let name of names) {
+                    caches.delete(name);
+                }
+            });
+        }
+        
+        // Prevent caching
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
+
+    </body>
 </html>

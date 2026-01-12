@@ -1,8 +1,9 @@
-// Drama Watch Lite - Bundled 2026-01-12T13:43:51.972Z
+// Drama Watch Lite - Bundled 2026-01-12T13:56:02.161Z
 
 (function() {
 
-// === Module ===
+
+// ========== api.js ==========
 const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
 const PROXY_LIST = [
     'https://api.codetabs.com/v1/proxy?quest=',
@@ -224,9 +225,7 @@ window.apiUtils = {
     cacheSize: () => cache.size
 };
 
-// === Module ===
-
-
+// ========== components.js ==========
 function escapeHTML(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -870,7 +869,7 @@ window.components = {
     cleanupInfiniteScroll
 };
 
-// === Module ===
+// ========== player.js ==========
 const PlayerState = {
     currentEpisode: null,
     sources: null,
@@ -1807,9 +1806,7 @@ window.player = {
     getState: () => PlayerState
 };
 
-// === Module ===
-
-
+// ========== ui.js ==========
 function detectLiteMode() {
     const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory <= 3;
     const isOldAndroid = /Android [5-8]/i.test(navigator.userAgent);
@@ -2125,12 +2122,7 @@ window.uiUtils = {
     confirmDialog
 };
 
-// === Module ===
-
-
-
-
-
+// ========== app.js ==========
 const AppState = {
     currentPage: 'home',
     currentCategory: 'latest',
@@ -2332,45 +2324,54 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
-
-// Initialize the app
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
+// Initialize the app when DOM is ready
+function initializeApp() {
+    if (typeof initApp === 'function') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            setTimeout(initApp, 0);
+        }
+    } else {
+        console.error('initApp function not found!');
+    }
 }
 
-// Expose utilities to window for debugging
-window.DramaWatch = {
+// Expose utilities globally for debugging
+window.DramaWatch = window.DramaWatch || {};
+Object.assign(window.DramaWatch, {
     api: {
-        smartFetch,
-        loadLatestDramas,
-        loadTrendingDramas,
-        searchDramas,
-        loadDramaDetail,
-        loadVideoSources,
-        clearCache,
-        proxyThumbnail
+        smartFetch: typeof smartFetch !== 'undefined' ? smartFetch : undefined,
+        loadLatestDramas: typeof loadLatestDramas !== 'undefined' ? loadLatestDramas : undefined,
+        loadTrendingDramas: typeof loadTrendingDramas !== 'undefined' ? loadTrendingDramas : undefined,
+        searchDramas: typeof searchDramas !== 'undefined' ? searchDramas : undefined,
+        loadDramaDetail: typeof loadDramaDetail !== 'undefined' ? loadDramaDetail : undefined,
+        loadVideoSources: typeof loadVideoSources !== 'undefined' ? loadVideoSources : undefined,
+        clearCache: typeof clearCache !== 'undefined' ? clearCache : undefined,
+        proxyThumbnail: typeof proxyThumbnail !== 'undefined' ? proxyThumbnail : undefined
     },
     components: {
-        renderGrid,
-        renderDetail,
-        renderSearchResults,
-        renderLoading,
-        renderError
+        renderGrid: typeof renderGrid !== 'undefined' ? renderGrid : undefined,
+        renderDetail: typeof renderDetail !== 'undefined' ? renderDetail : undefined,
+        renderSearchResults: typeof renderSearchResults !== 'undefined' ? renderSearchResults : undefined,
+        renderLoading: typeof renderLoading !== 'undefined' ? renderLoading : undefined,
+        renderError: typeof renderError !== 'undefined' ? renderError : undefined
     },
     player: {
-        initVideoPlayer,
-        openPlayer,
-        closePlayer
+        initVideoPlayer: typeof initVideoPlayer !== 'undefined' ? initVideoPlayer : undefined,
+        openPlayer: typeof openPlayer !== 'undefined' ? openPlayer : undefined,
+        closePlayer: typeof closePlayer !== 'undefined' ? closePlayer : undefined
     },
     ui: {
-        detectLiteMode,
-        setupEventListeners,
-        navigate,
-        updateUI,
-        showNotification
+        detectLiteMode: typeof detectLiteMode !== 'undefined' ? detectLiteMode : undefined,
+        setupEventListeners: typeof setupEventListeners !== 'undefined' ? setupEventListeners : undefined,
+        navigate: typeof navigate !== 'undefined' ? navigate : undefined,
+        updateUI: typeof updateUI !== 'undefined' ? updateUI : undefined,
+        showNotification: typeof showNotification !== 'undefined' ? showNotification : undefined
     }
-};
+});
+
+// Start the app
+initializeApp();
 
 })(); // End IIFE
