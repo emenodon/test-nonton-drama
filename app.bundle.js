@@ -1,4 +1,4 @@
-// Drama Watch Lite - Bundled 2026-01-12T12:55:29.375Z
+// Drama Watch Lite - Bundled 2026-01-12T13:43:51.972Z
 
 (function() {
 
@@ -258,6 +258,11 @@ function formatNumber(num) {
 function renderLoading(message = 'Memuat...') {
     const content = document.getElementById('content');
     if (!content) return;
+
+    if (infiniteScrollCleanup) {
+        infiniteScrollCleanup();
+        infiniteScrollCleanup = null;
+    }
     
     content.innerHTML = `
         <div class="loading">
@@ -270,6 +275,11 @@ function renderLoading(message = 'Memuat...') {
 function renderError(message) {
     const content = document.getElementById('content');
     if (!content) return;
+
+    if (infiniteScrollCleanup) {
+        infiniteScrollCleanup();
+        infiniteScrollCleanup = null;
+    }
     
     content.innerHTML = `
         <div class="empty-state">
@@ -281,10 +291,30 @@ function renderError(message) {
         </div>
     `;
 }
-
+function cleanupInfiniteScroll() {
+    if (infiniteScrollObserver) {
+        infiniteScrollObserver.disconnect();
+        infiniteScrollObserver = null;
+    }
+    
+    if (infiniteScrollHandler) {
+        window.removeEventListener('scroll', infiniteScrollHandler);
+        window.removeEventListener('resize', infiniteScrollHandler);
+        infiniteScrollHandler = null;
+    }
+    
+    if (window.retryLoadMore) {
+        delete window.retryLoadMore;
+    }
+}
 function renderGrid(dramas, category = 'latest') {
     const content = document.getElementById('content');
     if (!content) return;
+
+    if (infiniteScrollCleanup) {
+        infiniteScrollCleanup();
+        infiniteScrollCleanup = null;
+    }
     
     if (!dramas || dramas.length === 0) {
         renderError('Tidak ada drama ditemukan');
@@ -350,6 +380,11 @@ function renderGrid(dramas, category = 'latest') {
 function renderDetail(drama) {
     const content = document.getElementById('content');
     if (!content) return;
+
+    if (infiniteScrollCleanup) {
+        infiniteScrollCleanup();
+        infiniteScrollCleanup = null;
+    }
     
     const isLiteMode = document.documentElement.classList.contains('lite');
     const thumbnail = proxyThumbnail(drama.thumbnail, { width: 300, quality: 85 });
@@ -592,13 +627,25 @@ function renderSearchResults(results, query) {
     }, 50);
 }
 
+let infiniteScrollCleanup = null;
+
 function setupInfiniteScroll() {
+    if (infiniteScrollCleanup) {
+        infiniteScrollCleanup();
+        infiniteScrollCleanup = null;
+    }
+    
     const loadingElement = document.getElementById('infiniteScrollLoading');
     if (!loadingElement) return;
     
     let isFetching = false;
+    let scrollTimeout;
     
     const checkScroll = () => {
+        if (window.AppState?.currentPage !== 'search') {
+            return;
+        }
+        
         if (isFetching) return;
         
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -611,6 +658,10 @@ function setupInfiniteScroll() {
     };
     
     const loadMoreResults = async () => {
+        if (window.AppState?.currentPage !== 'search') {
+            return;
+        }
+        
         if (isFetching || !window.AppState?.searchResults?.hasMore) return;
         
         isFetching = true;
@@ -703,13 +754,21 @@ function setupInfiniteScroll() {
         }, 10);
     };
     
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
+    const scrollHandler = () => {
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(checkScroll, 200);
-    });
+    };
+    
+    window.addEventListener('scroll', scrollHandler);
     
     checkScroll();
+    
+    infiniteScrollCleanup = () => {
+        window.removeEventListener('scroll', scrollHandler);
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+    };
 }
 
 async function handleEpisodeClick(index) {
@@ -807,7 +866,8 @@ function setupExpandableDescription() {
 window.components = {
     renderGrid,
     renderDetail,
-    renderSearchResults
+    renderSearchResults,
+    cleanupInfiniteScroll
 };
 
 // === Module ===
