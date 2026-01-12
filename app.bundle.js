@@ -1,7 +1,8 @@
-// Drama Watch Lite - Bundled 2026-01-12T12:44:18.092Z
+// Drama Watch Lite - Bundled 2026-01-12T12:55:29.375Z
 
+(function() {
 
-// js/api.js
+// === Module ===
 const API_BASE = "https://melolo-api-azure.vercel.app/api/melolo";
 const PROXY_LIST = [
     'https://api.codetabs.com/v1/proxy?quest=',
@@ -223,7 +224,8 @@ window.apiUtils = {
     cacheSize: () => cache.size
 };
 
-// js/components.js
+// === Module ===
+
 
 function escapeHTML(str) {
     if (!str) return '';
@@ -808,7 +810,7 @@ window.components = {
     renderSearchResults
 };
 
-// js/player.js
+// === Module ===
 const PlayerState = {
     currentEpisode: null,
     sources: null,
@@ -1745,7 +1747,8 @@ window.player = {
     getState: () => PlayerState
 };
 
-// js/ui.js
+// === Module ===
+
 
 function detectLiteMode() {
     const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory <= 3;
@@ -2062,32 +2065,11 @@ window.uiUtils = {
     confirmDialog
 };
 
-// js/app.js
-import { 
-    loadLatestDramas, 
-    loadTrendingDramas, 
-    searchDramas, 
-    loadDramaDetail,
-    loadVideoSources 
-} from './api.js';
-import { 
-    renderGrid, 
-    renderDetail, 
-    renderSearchResults,
-    renderLoading,
-    renderError 
-} from './components.js';
-import { 
-    initVideoPlayer, 
-    openPlayer, 
-    closePlayer 
-} from './player.js';
-import { 
-    detectLiteMode, 
-    setupEventListeners,
-    navigate,
-    updateUI 
-} from './ui.js';
+// === Module ===
+
+
+
+
 
 const AppState = {
     currentPage: 'home',
@@ -2289,3 +2271,46 @@ if (document.readyState === 'loading') {
 } else {
     initApp();
 }
+
+
+// Initialize the app
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+
+// Expose utilities to window for debugging
+window.DramaWatch = {
+    api: {
+        smartFetch,
+        loadLatestDramas,
+        loadTrendingDramas,
+        searchDramas,
+        loadDramaDetail,
+        loadVideoSources,
+        clearCache,
+        proxyThumbnail
+    },
+    components: {
+        renderGrid,
+        renderDetail,
+        renderSearchResults,
+        renderLoading,
+        renderError
+    },
+    player: {
+        initVideoPlayer,
+        openPlayer,
+        closePlayer
+    },
+    ui: {
+        detectLiteMode,
+        setupEventListeners,
+        navigate,
+        updateUI,
+        showNotification
+    }
+};
+
+})(); // End IIFE
